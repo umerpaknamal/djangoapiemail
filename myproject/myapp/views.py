@@ -10,8 +10,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-import base64
-
+from email.message import EmailMessage
 @api_view(['POST'])
 def concatenate_email(request):
     data = request.data
@@ -19,8 +18,19 @@ def concatenate_email(request):
     to = data.get('to', '')
     subject = data.get('subject', '')
     sender = data.get('sender', '')
+
+    message = EmailMessage()
+
+    message.set_content(email)
+
+    message['From'] = sender
+    message['To'] = to
+    message['Subject'] = subject
     
-    concatenated_string = f"Email: {email}, To: {to}, Subject: {subject}, Sender: {sender}"
+    # encoded message
+    encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        
+    """ concatenated_string = f"Email: {email}, To: {to}, Subject: {subject}, Sender: {sender}"
 
     
     msg = MIMEMultipart()
@@ -45,7 +55,7 @@ def concatenate_email(request):
     msg.attach(attachment_part)
 
     # Convert the message to a string
-    email_text = msg.as_string()
+    email_text = msg.as_string() """
     
     
-    return Response({'encoded_string': email_text})
+    return Response({'encoded_string': encoded_message})
