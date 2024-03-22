@@ -1,61 +1,52 @@
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
 import base64
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 
-from email.message import EmailMessage
 @api_view(['POST'])
 def concatenate_email(request):
-    data = request.data
-    email = data.get('email', '')
-    to = data.get('to', '')
-    subject = data.get('subject', '')
-    sender = data.get('sender', '')
+        data = request.data
+        email = data.get('email', '')
+        to = data.get('to', '')
+        subject = data.get('subject', '')
+        sender = data.get('sender', '')
+        encodedAttachments = data.get('encodedAttachments', [])
+        attachmentname=data.get('attachmentname',[])
+        attachmenttype=data.get('attachmenttype',[])
 
-    message = EmailMessage()
-
-    message.set_content(email)
-
-    message['From'] = sender
-    message['To'] = to
-    message['Subject'] = subject
+        boundary = "boundary_string"
     
-    # encoded message
-    encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        str_parts = [
+                "Content-Type: multipart/mixed; boundary=" + boundary + "\n",
+                "MIME-Version: 1.0\n",
+                "to: {}\n".format(to),
+                "from: {}\n".format(sender),
+                "subject: {}\n\n".format(subject),
+                "--" + boundary + "\n",
+                "Content-Type: text/plain; charset=\"UTF-8\"\n",
+                "Content-Transfer-Encoding: 7bit\n\n",
+                email, "\n",
+            ]
+
+    # Add attachment parts
+    # Add attachment parts
+        for attachment_data, attachment_name, attachment_type in zip(encodedAttachments, attachmentname, attachmenttype):
+            filename = attachment_name + "." + attachment_type  # Concatenate name and type
+            str_parts.extend([
+            "--" + boundary + "\n",
+            "Content-Type: Application\{}\n".format(attachment_type),  
+            "Content-Disposition: attachment; filename=\"{}\"\n".format(filename),
+            "Content-Transfer-Encoding: base64\n\n",
+            attachment_data, "\n",
+        ])
+
+        # End the MIME structure
+        str_parts.append("--" + boundary + "--")
         
-    """ concatenated_string = f"Email: {email}, To: {to}, Subject: {subject}, Sender: {sender}"
-
-    
-    msg = MIMEMultipart()
-    msg['From'] = sender
-    msg['To'] = to
-    msg['Subject'] = subject
-    msg['MIME-Version'] = '1.0'
-    msg['Content-Type'] = 'multipart/mixed; boundary=foo_bar_baz'
-
-    # Add body text
-    body_part = MIMEText(concatenated_string, 'plain', 'utf-8')
-    msg.attach(body_part)
-
-    # Add attachment
-    attachment_base64 = data.get('attachment_base64', '')
-    attachment_filename = data.get('attachment_filename', 'Attachment_file.png')
-
-    attachment_part = MIMEBase('application', 'octet-stream')
-    attachment_part.set_payload(base64.b64decode(attachment_base64))
-    encoders.encode_base64(attachment_part)
-    attachment_part.add_header('Content-Disposition', f'attachment; filename="{attachment_filename}"')
-    msg.attach(attachment_part)
-
-    # Convert the message to a string
-    email_text = msg.as_string() """
-    
-    
-    return Response({'encoded_string': encoded_message})
+        # Join the parts to form the complete email body
+        email_body = "".join(str_parts)
+        print(email_body)
+        # Encode the entire email body to base64
+        encodedMail = base64.b64encode(email_body.encode()).decode()
+            
+        return Response({'encoded_string': encodedMail})
