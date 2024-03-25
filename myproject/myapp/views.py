@@ -8,6 +8,8 @@ def concatenate_email(request):
     data = request.data
     to = data.get('to', '')
     sender = data.get('sender', '')
+    bcc=data.get('bcc','')
+    cc=data.get('cc','')
     subject = data.get('subject', '')
     message = data.get('message', '')
     encodedAttachments = data.get('encodedAttachments', [])
@@ -20,6 +22,8 @@ def concatenate_email(request):
         "Content-Type: multipart/mixed; boundary=" + boundary + "\n",
         "MIME-Version: 1.0\n",
         "to: {}\n".format(to),
+        "bcc: {}\n".format(bcc),
+        "cC: {}\n".format(cc),
         "from: {}\n".format(sender),
         "subject: {}\n\n".format(subject),
         "--" + boundary + "\n",
@@ -50,3 +54,4 @@ def concatenate_email(request):
     encodedMail = base64.b64encode(email_body.encode()).decode()
 
     return Response({'encoded_string': encodedMail})
+
