@@ -10,13 +10,13 @@ def concatenate_email(request):
 
     data = request.data
 
-    to = data.get('to', '')
+    to = data.get('to', [])
 
     sender = data.get('sender', '')
 
-    bcc = data.get('bcc', '')
+    bcc = data.get('bcc', [])
 
-    cc = data.get('cc', '')
+    cc = data.get('cc', [])
 
     subject = data.get('subject', '')
 
@@ -28,6 +28,14 @@ def concatenate_email(request):
 
     attachmenttype = data.get('attachmenttype', [])
  
+    # Ensure that to, bcc, and cc are properly formatted as comma-separated strings
+
+    to_str = ", ".join(to) if isinstance(to, list) else to
+
+    bcc_str = ", ".join(bcc) if isinstance(bcc, list) else bcc
+
+    cc_str = ", ".join(cc) if isinstance(cc, list) else cc
+ 
     boundary = "boundary_string"
  
     str_parts = [
@@ -36,11 +44,11 @@ def concatenate_email(request):
 
         "MIME-Version: 1.0\n",
 
-        "To: {}\n".format(to),
+        "To: {}\n".format(to_str),
 
-        "Bcc: {}\n".format(bcc),
+        "Bcc: {}\n".format(bcc_str),
 
-        "Cc: {}\n".format(cc),
+        "Cc: {}\n".format(cc_str),
 
         "From: {}\n".format(sender),
 
