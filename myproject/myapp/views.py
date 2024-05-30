@@ -1,3 +1,4 @@
+[9:07 PM] Muhammad Kamran
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import base64
@@ -12,7 +13,9 @@ def concatenate_email(request):
     cc = data.get('cc', [])
     subject = data.get('subject', '')
     message = data.get('message', '')
-    attachments = data.get('attachments', [])  # Expecting a list of attachments
+    attachment_data = data.get('attachment_data', '')  # Binary data
+    attachment_name = data.get('attachment_name', 'attachment')  # Default name if not provided
+    attachment_type = data.get('attachment_type', 'octet-stream')  # Default type if not provided
  
     # Ensure that to, bcc, and cc are properly formatted as comma-separated strings
     to_str = ", ".join(to) if isinstance(to, list) else to
@@ -35,23 +38,16 @@ def concatenate_email(request):
         message, "\n",
     ]
  
-    # Add attachment parts
-    for attachment in attachments:
-        # Expecting each attachment to be a dictionary with keys: 'name', 'type', and 'data'
-        #attachment_name = attachment.get('name', 'attachment')
-        #attachment_type = attachment.get('type', 'octet-stream')
-        #content_bytes = attachment.get('data', b'')  # Binary data
+    # Convert the binary data to base64
+    base64_encoded_data = base64.b64encode(attachment_data.encode()).decode()
  
-        # Convert the binary data to base64
-        base64_encoded_data = base64.b64encode(attachments).decode()
- 
-        str_parts.extend([
-            "--" + boundary + "\n",
-            "Content-Type: application/{}\n".format(attachment_type),
-            "Content-Disposition: attachment; filename=\"{}\"\n".format(attachment_name),
-            "Content-Transfer-Encoding: base64\n\n",
-            base64_encoded_data, "\n",
-        ])
+    str_parts.extend([
+        "--" + boundary + "\n",
+        "Content-Type: application/{}\n".format(attachment_type),
+        "Content-Disposition: attachment; filename=\"{}\"\n".format(attachment_name),
+        "Content-Transfer-Encoding: base64\n\n",
+        base64_encoded_data, "\n",
+    ])
  
     # End the MIME structure
     str_parts.append("--" + boundary + "--")
@@ -63,3 +59,4 @@ def concatenate_email(request):
     encodedMail = base64.b64encode(email_body.encode()).decode()
  
     return Response({'encoded_string': encodedMail})
+ 
