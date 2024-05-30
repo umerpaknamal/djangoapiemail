@@ -40,10 +40,10 @@ def concatenate_email(request):
         # Expecting each attachment to be a dictionary with keys: 'name', 'type', and 'data'
         #attachment_name = attachment.get('name', 'attachment')
         #attachment_type = attachment.get('type', 'octet-stream')
-        content_bytes = attachment.get('data', b'')  # Binary data
+        #content_bytes = attachment.get('data', b'')  # Binary data
  
         # Convert the binary data to base64
-        base64_encoded_data = base64.b64encode(content_bytes).decode()
+        base64_encoded_data = base64.b64encode(attachments).decode()
  
         str_parts.extend([
             "--" + boundary + "\n",
