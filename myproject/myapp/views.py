@@ -38,8 +38,8 @@ def concatenate_email(request):
     # Add attachment parts
     for attachment in attachments:
         # Expecting each attachment to be a dictionary with keys: 'name', 'type', and 'data'
-        attachment_name = attachment.get('name', 'attachment')
-        attachment_type = attachment.get('type', 'octet-stream')
+        #attachment_name = attachment.get('name', 'attachment')
+        #attachment_type = attachment.get('type', 'octet-stream')
         content_bytes = attachment.get('data', b'')  # Binary data
  
         # Convert the binary data to base64
