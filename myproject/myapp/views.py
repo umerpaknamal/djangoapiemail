@@ -5,7 +5,6 @@ import base64
 @api_view(['POST'])
 def concatenate_email(request):
     data = request.data
-    files = request.FILES  # Access uploaded files
  
     to = data.get('to', [])
     sender = data.get('sender', '')
@@ -13,6 +12,7 @@ def concatenate_email(request):
     cc = data.get('cc', [])
     subject = data.get('subject', '')
     message = data.get('message', '')
+    attachments = data.get('attachments', [])  # Expecting a list of attachments
  
     # Ensure that to, bcc, and cc are properly formatted as comma-separated strings
     to_str = ", ".join(to) if isinstance(to, list) else to
@@ -36,18 +36,21 @@ def concatenate_email(request):
     ]
  
     # Add attachment parts
-    for file_key in files:
-        file = files[file_key]
-        attachment_data = base64.b64encode(file.read()).decode()
-        attachment_name = file.name
-        attachment_type = file.content_type.split('/')[-1]  # Get the file type (e.g., 'pdf', 'jpeg')
+    for attachment in attachments:
+        # Expecting each attachment to be a dictionary with keys: 'name', 'type', and 'data'
+        attachment_name = attachment.get('name', 'attachment')
+        attachment_type = attachment.get('type', 'octet-stream')
+        content_bytes = attachment.get('data', b'')  # Binary data
+ 
+        # Convert the binary data to base64
+        base64_encoded_data = base64.b64encode(content_bytes).decode()
  
         str_parts.extend([
             "--" + boundary + "\n",
             "Content-Type: application/{}\n".format(attachment_type),
             "Content-Disposition: attachment; filename=\"{}\"\n".format(attachment_name),
             "Content-Transfer-Encoding: base64\n\n",
-            attachment_data, "\n",
+            base64_encoded_data, "\n",
         ])
  
     # End the MIME structure
