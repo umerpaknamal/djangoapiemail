@@ -23,7 +23,7 @@ def concatenate_email(request):
     message = data.get('message', '')
 
     encodedAttachments = data.get('encodedAttachments', [])
-    print(encodedAttachments)
+    
 
     attachmentname = data.get('attachmentname', [])
 
