@@ -94,7 +94,7 @@ def concatenate_email(request):
     email_body = "".join(str_parts)
  
     # Encode the entire email body to base64
-    print(email_body)
+    
     encodedMail = base64.b64encode(email_body.encode()).decode()
  
     return Response({'encoded_string': encodedMail})
