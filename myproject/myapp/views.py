@@ -10,17 +10,17 @@ import google.auth
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-@method_decorator(csrf_exempt, name='dispatch')
-class Base64View(View):
-    def post(self, request, *args, **kwargs):
-        try:
-            data = json.loads(request.body)
-            base64_string = data.get('base64_string')
-            if base64_string is None:
-                return JsonResponse({'error': 'base64_string is required'}, status=400)
-            return JsonResponse({'base64_string': base64_string})
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+@api_view(['POST'])
+def base64_view(request):
+    try:
+        data = request.data
+        base64_string = data.get('base64_string')
+        if base64_string is None:
+            return Response({'error': 'base64_string is required'}, status=400)
+        return Response({'base64_string': base64_string})
+    except json.JSONDecodeError:
+        return Response({'error': 'Invalid JSON'}, status=400)
 
 @api_view(['POST'])
 def concatenate_email(request):
