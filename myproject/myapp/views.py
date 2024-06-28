@@ -23,7 +23,7 @@ def base64_view(request):
             return JsonResponse({'error': 'base64_string is required'}, status=400)
 
         # Process the base64_string
-        return JsonResponse({'base64_string': base64_string})
+        return JsonResponse({'data': base64_string})
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
