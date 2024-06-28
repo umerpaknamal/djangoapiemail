@@ -14,13 +14,19 @@ from googleapiclient.discovery import build
 @api_view(['POST'])
 def base64_view(request):
     try:
-        data = request.data
+        data = json.loads(request.body)  # Ensure data is loaded as a dictionary
+        if not isinstance(data, dict):
+            return JsonResponse({'error': 'Invalid data format, expected a JSON object'}, status=400)
+        
         base64_string = data.get('base64_string')
         if base64_string is None:
-            return Response({'error': 'base64_string is required'}, status=400)
-        return Response({'base64_string': base64_string})
+            return JsonResponse({'error': 'base64_string is required'}, status=400)
+
+        # Process the base64_string
+        return JsonResponse({'base64_string': base64_string})
     except json.JSONDecodeError:
-        return Response({'error': 'Invalid JSON'}, status=400)
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
 
 @api_view(['POST'])
 def concatenate_email(request):
