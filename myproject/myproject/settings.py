@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # settings.py
 
 # Increase the maximum size for request body
-DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 10 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 10 MB
 
 
 # Quick-start development settings - unsuitable for production
