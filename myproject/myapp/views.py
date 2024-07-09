@@ -68,8 +68,14 @@ def concatenate_email(request):
  
     # Add In-Reply-To and References headers for threading
     if original_message_id:
-        str_parts.insert(4, "In-Reply-To: {}\n".format(original_message_id))
-        str_parts.insert(5, "References: {}\n".format(original_message_id))
+    # Get the thread ID of the original message
+      credentials = Credentials(token=access_token)
+      service = build('gmail', 'v1', credentials=credentials)
+      thread = service.users().threads().get(userId='me', id=original_message_id).execute()
+      thread_id = thread['id']
+    else:
+    # Set thread_id to None if no original message ID provided (optional for new threads)
+      thread_id = None
  
     for attachment_data, attachment_name, attachment_type in zip(encoded_attachments, attachment_name, attachment_type):
         filename = attachment_name + "." + attachment_type
@@ -90,7 +96,8 @@ def concatenate_email(request):
     service = build('gmail', 'v1', credentials=credentials)
  
     message_data = {
-        'raw': encoded_mail
+      'raw': encoded_mail,
+      'threadId': thread_id  # Include the retrieved thread ID or None for new threads
     }
     if thread_id:
         message_data['threadId'] = thread_id
@@ -102,3 +109,4 @@ def concatenate_email(request):
         return Response({'messageId': message_id, 'threadId': thread_id})
     except Exception as e:
         return Response({'error': str(e)}, status=400)
+ 
