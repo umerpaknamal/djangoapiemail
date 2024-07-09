@@ -50,7 +50,7 @@ def concatenate_email(request):
     bcc_str = ", ".join(bcc) if isinstance(bcc, list) else bcc
     cc_str = ", ".join(cc) if isinstance(cc, list) else cc
  
-    boundary = "----=_Part_0_123456789.123456789"
+    boundary = "boundary_string"
  
     str_parts = [
         "Content-Type: multipart/mixed; boundary=" + boundary + "\n",
@@ -59,27 +59,23 @@ def concatenate_email(request):
         "Bcc: {}\n".format(bcc_str),
         "Cc: {}\n".format(cc_str),
         "From: {}\n".format(sender),
-        "Subject: {}\n".format(subject),
-    ]
- 
-    if original_message_id:
-        str_parts.extend([
-            "In-Reply-To: {}\n".format(original_message_id),
-            "References: {}\n".format(original_message_id),
-        ])
- 
-    str_parts.extend([
+        "Subject: {}\n\n".format(subject),
         "--" + boundary + "\n",
         "Content-Type: text/html; charset=\"UTF-8\"\n",
         "Content-Transfer-Encoding: 7bit\n\n",
         message, "\n",
-    ])
+    ]
  
-    for attachment_data, name, type in zip(encoded_attachments, attachment_name, attachment_type):
-        filename = name + "." + type
+    # Add In-Reply-To and References headers for threading
+    if original_message_id:
+        str_parts.insert(4, "In-Reply-To: {}\n".format(original_message_id))
+        str_parts.insert(5, "References: {}\n".format(original_message_id))
+ 
+    for attachment_data, attachment_name, attachment_type in zip(encoded_attachments, attachment_name, attachment_type):
+        filename = attachment_name + "." + attachment_type
         str_parts.extend([
             "--" + boundary + "\n",
-            "Content-Type: application/{}\n".format(type),
+            "Content-Type: application/{}\n".format(attachment_type),
             "Content-Disposition: attachment; filename=\"{}\"\n".format(filename),
             "Content-Transfer-Encoding: base64\n\n",
             attachment_data, "\n",
