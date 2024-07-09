@@ -32,6 +32,12 @@ def base64_view(request):
 def concatenate_email(request):
     data = request.data
  
+    # Basic validation
+    required_fields = ['access_token', 'threadId', 'originalMessageId', 'to', 'sender', 'subject', 'message', 'encodedAttachments', 'attachmentname', 'attachmenttype']
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        raise ValueError(f"Missing required fields: {missing_fields}")
+ 
     access_token = data.get('access_token', '')
     thread_id = data.get('threadId', '')
     original_message_id = data.get('originalMessageId', '')
@@ -44,7 +50,7 @@ def concatenate_email(request):
     message = data.get('message', '')
     encoded_attachments = data.get('encodedAttachments', [])
     attachment_name = data.get('attachmentname', [])
-    attachment_type = data.get('attachmenttype', [])
+    attachment_type = data.get('attachmenttype')
  
     to_str = ", ".join(to) if isinstance(to, list) else to
     bcc_str = ", ".join(bcc) if isinstance(bcc, list) else bcc
@@ -60,23 +66,24 @@ def concatenate_email(request):
         "Cc: {}\n".format(cc_str),
         "From: {}\n".format(sender),
         "Subject: {}\n\n".format(subject),
+    ]
+ 
+    # Fetching original message details to set In-Reply-To and References headers
+    # This is a placeholder for the actual implementation
+    original_message_details = fetch_original_message_details(original_message_id)
+    in_reply_to = original_message_details['In-Reply-To']
+    references = original_message_details['References']
+ 
+    str_parts.extend([
+        "In-Reply-To: {}\n".format(in_reply_to),
+        "References: {}\n".format(references),
         "--" + boundary + "\n",
         "Content-Type: text/html; charset=\"UTF-8\"\n",
         "Content-Transfer-Encoding: 7bit\n\n",
         message, "\n",
-    ]
+    ])
  
-    # Add In-Reply-To and References headers for threading
-    if original_message_id:
-    # Get the thread ID of the original message
-      credentials = Credentials(token=access_token)
-      service = build('gmail', 'v1', credentials=credentials)
-      thread = service.users().threads().get(userId='me', id=original_message_id).execute()
-      thread_id = thread['id']
-    else:
-    # Set thread_id to None if no original message ID provided (optional for new threads)
-      thread_id = None
- 
+    # Constructing attachments
     for attachment_data, attachment_name, attachment_type in zip(encoded_attachments, attachment_name, attachment_type):
         filename = attachment_name + "." + attachment_type
         str_parts.extend([
@@ -91,16 +98,14 @@ def concatenate_email(request):
     email_body = "".join(str_parts)
     encoded_mail = base64.urlsafe_b64encode(email_body.encode()).decode()
  
-    # Send the email using Gmail API
+    # Sending the email using Gmail API
     credentials = Credentials(token=access_token)
     service = build('gmail', 'v1', credentials=credentials)
  
     message_data = {
-      'raw': encoded_mail,
-      'threadId': thread_id  # Include the retrieved thread ID or None for new threads
+        'raw': encoded_mail,
+        'threadId': thread_id
     }
-    if thread_id:
-        message_data['threadId'] = thread_id
  
     try:
         message = service.users().messages().send(userId='me', body=message_data).execute()
@@ -110,3 +115,10 @@ def concatenate_email(request):
     except Exception as e:
         return Response({'error': str(e)}, status=400)
  
+def fetch_original_message_details(original_message_id):
+    # Placeholder function to simulate fetching original message details
+    # Implement actual logic to fetch message details from Gmail API
+    return {
+        'In-Reply-To': '<original_message_id>',
+        'References': '<original_message_id>'
+    }
